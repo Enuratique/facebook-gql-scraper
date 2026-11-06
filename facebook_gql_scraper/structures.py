@@ -789,7 +789,9 @@ class Post(FacebookModel):
 
         return PaginatedIterator(
             request_fn=request_fn,
-            parser=self._context.parse_graphql_response,
+            parser=lambda raw: self._context.parse_graphql_response(
+                raw, operation_hint="comments"
+            ),
             page_wrapper=page_wrapper,
             item_wrapper=item_wrapper,
             iterator_type="comments",
@@ -2555,7 +2557,9 @@ class Comment(FacebookModel):
 
         return PaginatedIterator(
             request_fn=request_fn,
-            parser=self._context.parse_graphql_response,
+            parser=lambda raw: self._context.parse_graphql_response(
+                raw, operation_hint="replies"
+            ),
             page_wrapper=page_wrapper,
             item_wrapper=item_wrapper,
             iterator_type="comment_replies",

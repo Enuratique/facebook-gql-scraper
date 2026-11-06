@@ -52,6 +52,8 @@ class FacebookContext:
         self.quiet = quiet
         self.debug = debug
         self.debug_dir = debug_dir
+        # Number of known recoverable GraphQL parsing anomalies encountered.
+        self.parse_warning_count = 0
         if user_agent is None:
             user_agent = (
                 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -440,11 +442,40 @@ class FacebookContext:
             
         return response
 
-    def parse_graphql_response(self, raw):
+    def parse_graphql_response(self, raw, operation_hint=None):
         obj = consolidate_jsonl(raw)
 
         if obj is None:
             return None
+
+        data = obj.get("data") if isinstance(obj, dict) else None
+        if (
+            operation_hint in {"comments", "replies"}
+            and isinstance(data, dict)
+            and data.get("node", object()) is None
+        ):
+            self.parse_warning_count += 1
+            logger.warning(
+                "Facebook returned data.node=null for the %s page; treating it as "
+                "an empty terminal page (warning %d).",
+                operation_hint,
+                self.parse_warning_count,
+            )
+            result_key = operation_hint
+            return {
+                "operation": (
+                    "CommentsListComponentsPaginationQuery"
+                    if operation_hint == "comments"
+                    else "CommentRepliesPaginationQuery"
+                ),
+                "parsed_data": {
+                    result_key: [],
+                    "page_info": {
+                        "has_next_page": False,
+                        "end_cursor": None,
+                    },
+                },
+            }
 
         parsed = parse_facebook_payload(obj)
 

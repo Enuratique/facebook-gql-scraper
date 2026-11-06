@@ -45,6 +45,10 @@ Creates a Facebook request context.
   </Prop>
 </Props>
 
+## Recoverable parse warnings
+
+If Facebook returns `data.node: null` for a paginated comments or replies request, the library logs a warning and treats that response as an empty final page. `context.parse_warning_count` records how many such responses were encountered during this context's lifetime.
+
 ## Methods
 
 <Props>
