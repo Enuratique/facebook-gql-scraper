@@ -85,6 +85,63 @@ def _large_photo_url(media, image_url):
     return large_url if large_url != image_url else None
 
 
+def _parse_user_mentions(body):
+    """Normalize structured User ranges from a Facebook text body."""
+    if not isinstance(body, dict) or not isinstance(body.get("text"), str):
+        return []
+
+    text = body["text"]
+    mentions = []
+    for item in body.get("ranges") or []:
+        if not isinstance(item, dict):
+            continue
+        entity = item.get("entity")
+        if not isinstance(entity, dict) or entity.get("__typename") != "User":
+            continue
+
+        offset = item.get("offset")
+        length = item.get("length")
+        display_text = None
+        if (
+            isinstance(offset, int)
+            and not isinstance(offset, bool)
+            and isinstance(length, int)
+            and not isinstance(length, bool)
+            and offset >= 0
+            and length >= 0
+        ):
+            # Facebook offsets are UTF-16 code units, as in JavaScript strings.
+            encoded = text.encode("utf-16-le", errors="surrogatepass")
+            display_text = encoded[offset * 2 : (offset + length) * 2].decode(
+                "utf-16-le", errors="replace"
+            )
+
+        picture = entity.get("profile_picture_depth_0") or entity.get(
+            "profile_picture"
+        ) or {}
+        mentions.append(
+            {
+                "offset": offset,
+                "length": length,
+                "text": display_text,
+                "profile": {
+                    "id": entity.get("id"),
+                    "name": entity.get("name") or entity.get("short_name"),
+                    "url": entity.get("url")
+                    or entity.get("profile_url")
+                    or entity.get("mobileUrl"),
+                    "profile_picture_url": (
+                        picture.get("uri") if isinstance(picture, dict) else None
+                    ),
+                    "is_verified": entity.get("is_verified"),
+                },
+                "is_weak_reference": item.get("entity_is_weak_reference"),
+            }
+        )
+
+    return mentions
+
+
 def _parse_comment_attachments(attachments):
     """
     Parse the `attachments` list on a comment / reply.
@@ -455,6 +512,7 @@ def _parse_feed_post(edge):
         },
         "title": title_text,
         "text": text,
+        "mentions": _parse_user_mentions(comet_story.get("message")),
         "attachments": attachments_list,
         "reactions": reactions,
         "reactors_visible": reaction_display_strategy == "NONE"
@@ -724,6 +782,7 @@ def parse_post(data):
                 "type": "comment",
                 "id": comment_id,
                 "text": text,
+                "mentions": _parse_user_mentions(c_node.get("body")),
                 "attachments": attachments,
                 "created_time": c_node.get("created_time", None),
                 "reaction_count": (
@@ -793,6 +852,7 @@ def parse_post(data):
         },
         "title": title_text,
         "text": text,
+        "mentions": _parse_user_mentions(comet_story.get("message")),
         "attachments": attachments_list,
         "reactions": reactions,
         "reactors_visible": reaction_display_strategy == "NONE"
@@ -939,6 +999,7 @@ def parse_facebook_comments(data):
                 "type": "comment",
                 "id": comment_id,
                 "text": text,
+                "mentions": _parse_user_mentions(node.get("body")),
                 "attachments": attachments,
                 "created_time": node.get("created_time", None),
                 "reaction_count": (
@@ -1024,6 +1085,7 @@ def parse_comment_replies(data, comment_type="reply"):
             "type": "comment",
             "id": comment_id,
             "text": text,
+            "mentions": _parse_user_mentions(reply_node.get("body")),
             "attachments": attachments,
             "created_time": reply_node.get("created_time", None),
             "reaction_count": (

@@ -685,6 +685,11 @@ class Post(FacebookModel):
         """
         return self._field("text")
 
+    @property
+    def mentions(self) -> list[dict]:
+        """Structured user mentions found in the post text."""
+        return list(self._field("mentions", default=[]) or [])
+
     # ---------- reactions ----------
 
     @property
@@ -761,6 +766,7 @@ class Post(FacebookModel):
                 {
                     "id": item["id"],
                     "text": item["text"],
+                    "mentions": item.get("mentions", []),
                     "attachments": [
                         _attachment_to_dict(att) for att in item["attachments"]
                     ],
@@ -2444,6 +2450,11 @@ class Comment(FacebookModel):
         return self._field("text")
 
     @property
+    def mentions(self) -> list[dict]:
+        """Structured user mentions found in the comment or reply text."""
+        return list(self._field("mentions", default=[]) or [])
+
+    @property
     def created_time(self) -> Optional[int]:
         """
         Creation timestamp of the comment.
@@ -2524,6 +2535,7 @@ class Comment(FacebookModel):
                 {
                     "id": item["id"],
                     "text": item["text"],
+                    "mentions": item.get("mentions", []),
                     "attachments": [
                         _attachment_to_dict(att) for att in item["attachments"]
                     ],

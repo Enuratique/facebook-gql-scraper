@@ -17,6 +17,7 @@ A Facebook comment.
 <Props>
   <Prop name="id" type="str">Comment ID.</Prop>
   <Prop name="text" type="str | None">Body text of the comment.</Prop>
+  <Prop name="mentions" type="list[dict]">Structured user mentions in the comment or reply text, with text offsets and profile details when available.</Prop>
   <Prop name="created_time" type="int | None">Unix timestamp of when the comment was created.</Prop>
   <Prop name="reaction_count" type="str | None">Number of reactions on the comment.</Prop>
   <Prop name="reply_count" type="int | None">Number of direct replies.</Prop>

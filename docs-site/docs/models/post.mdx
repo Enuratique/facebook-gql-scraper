@@ -43,6 +43,7 @@ The PFBID is resolved to an ID using regex matching. Prefer `from_post_id` when 
   <Prop name="url" type="str | None">Facebook post URL.</Prop>
   <Prop name="title" type="str | None">Optional title, when the post has one.</Prop>
   <Prop name="text" type="str | None">Body text of the post.</Prop>
+  <Prop name="mentions" type="list[dict]">Structured user mentions in the post text, with text offsets and profile details when available.</Prop>
 </Props>
 
 **Engagement**
