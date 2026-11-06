@@ -1,5 +1,6 @@
 import json
 import base64
+import re
 
 import iso4217parse
 from price_parser import Price
@@ -56,6 +57,34 @@ FIXED_TABS_SCHEMA = {
 }
 
 
+def _large_photo_url(media, image_url):
+    """Return the largest photo URL exposed by a GraphQL media node, if any."""
+    viewer_image = media.get("viewer_image") or {}
+    if viewer_image.get("uri"):
+        return viewer_image["uri"]
+
+    massive_image = media.get("massive_image") or {}
+    width = massive_image.get("width")
+    height = massive_image.get("height")
+    if (
+        not isinstance(image_url, str)
+        or not isinstance(width, int)
+        or not isinstance(height, int)
+        or width <= 0
+        or height <= 0
+        or f"cstp=mx{width}x{height}" not in image_url
+    ):
+        return None
+
+    large_url = re.sub(
+        r"([?&]ctp=)[^&]+",
+        lambda match: f"{match.group(1)}s{width}x{height}",
+        image_url,
+        count=1,
+    )
+    return large_url if large_url != image_url else None
+
+
 def _parse_comment_attachments(attachments):
     """
     Parse the `attachments` list on a comment / reply.
@@ -69,15 +98,14 @@ def _parse_comment_attachments(attachments):
         attachment_type = inner_attachment.get("media", {}).get("__typename", "")
 
         if attachment_type == "Photo":
+            media = inner_attachment.get("media", {})
+            image_url = (media.get("image") or {}).get("uri")
             result.append(
                 {
                     "type": "photo",
-                    "id": inner_attachment.get("media", {}).get("id", None),
-                    "image_url": (
-                        inner_attachment.get("media", {})
-                        .get("image", {})
-                        .get("uri", None)
-                    ),
+                    "id": media.get("id"),
+                    "image_url": image_url,
+                    "image_url_large": _large_photo_url(media, image_url),
                     "url": inner_attachment.get("url", None),
                 }
             )
@@ -197,15 +225,14 @@ def _parse_post_attachments(attachments):
                         }
                     )
                 elif subattachment_type == "Photo":
+                    media = subattachment_node.get("media", {})
+                    image_url = (media.get("image") or {}).get("uri")
                     result.append(
                         {
                             "type": "photo",
-                            "id": subattachment_node.get("media", {}).get("id", None),
-                            "image_url": (
-                                subattachment_node.get("media", {})
-                                .get("image", {})
-                                .get("uri", None)
-                            ),
+                            "id": media.get("id"),
+                            "image_url": image_url,
+                            "image_url_large": _large_photo_url(media, image_url),
                             "url": subattachment_node.get("url", None),
                         }
                     )
@@ -220,28 +247,15 @@ def _parse_post_attachments(attachments):
                 .get("__typename", "")
             )
             if style_type == "Photo":
+                media = att.get("styles", {}).get("attachment", {}).get("media", {})
+                image_url = (media.get("photo_image") or {}).get("uri")
                 result.append(
                     {
                         "type": "photo",
-                        "id": (
-                            att.get("styles", {})
-                            .get("attachment", {})
-                            .get("media", {})
-                            .get("id", None)
-                        ),
-                        "image_url": (
-                            att.get("styles", {})
-                            .get("attachment", {})
-                            .get("media", {})
-                            .get("photo_image", {})
-                            .get("uri", None)
-                        ),
-                        "url": (
-                            att.get("styles", {})
-                            .get("attachment", {})
-                            .get("media", {})
-                            .get("url", None)
-                        ),
+                        "id": media.get("id"),
+                        "image_url": image_url,
+                        "image_url_large": _large_photo_url(media, image_url),
+                        "url": media.get("url"),
                     }
                 )
 

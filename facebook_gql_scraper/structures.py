@@ -47,6 +47,8 @@ class Photo(NamedTuple):
     :vartype id: str or None
     :ivar image_url: Direct URL of the photo image.
     :vartype image_url: str or None
+    :ivar image_url_large: Direct URL of the largest photo rendition available.
+    :vartype image_url_large: str or None
     :ivar url: Facebook URL of the photo.
     :vartype url: str or None
     """
@@ -54,6 +56,7 @@ class Photo(NamedTuple):
     id: Optional[str] = None
     image_url: Optional[str] = None
     url: Optional[str] = None
+    image_url_large: Optional[str] = None
 
 
 class Video(NamedTuple):
@@ -254,6 +257,7 @@ def _attachment_to_dict(attachment: dict) -> Optional[dict]:
             "id": attachment.get("id"),
             "image_url": attachment.get("image_url"),
             "url": attachment.get("url"),
+            "image_url_large": attachment.get("image_url_large"),
         }
     elif t == "video":
         return {
@@ -290,6 +294,7 @@ def _dict_to_attachment(att: dict) -> Optional[Photo | Video | GenericMedia | St
             id=att.get("id"),
             image_url=att.get("image_url"),
             url=att.get("url"),
+            image_url_large=att.get("image_url_large"),
         )
     elif t == "video":
         return Video(

@@ -16,5 +16,8 @@ A Facebook photo attached to a post, comment, or listing.
 <Props>
   <Prop name="id" type="str | None">Unique identifier of the photo.</Prop>
   <Prop name="image_url" type="str | None">Direct URL of the photo image.</Prop>
+  <Prop name="image_url_large" type="str | None">URL of the largest photo rendition available in the response.</Prop>
   <Prop name="url" type="str | None">Facebook URL of the photo.</Prop>
 </Props>
+
+`image_url_large` uses the `viewer_image` URL when Facebook returns one. For comment and reply photos without that URL, it is built from the returned `massive_image` dimensions when the image URL includes a matching size cap; otherwise it is `None`.
