@@ -212,11 +212,23 @@ class FacebookContext:
         self.progress("Fetching fb_dtsg ...")
         html = self.get("https://www.facebook.com").text
 
-        m = re.search(r'\{"name":"fb_dtsg","value":"([^"]+)"\}', html)
-        if not m:
-            raise DtsgTokenFetchError("Could not find fb_dtsg")
+        # Prefer the DTSGInitialData payload used by current home-page
+        # responses, while retaining the older hidden-input format as fallback.
+        m = re.search(
+            r'\["DTSGInitialData",\s*\[\],\s*\{"token":"([^"\\]+)"',
+            html,
+        )
+        if m:
+            token = m.group(1)
+        else:
+            m = re.search(r'\{"name":"fb_dtsg","value":"([^"]+)"\}', html)
+            if not m:
+                raise DtsgTokenFetchError(
+                    "Could not find fb_dtsg or token in DTSGInitialData"
+                )
+            token = m.group(1)
 
-        self.fb_dtsg = m.group(1)
+        self.fb_dtsg = token
         self._save_state()
         return self.fb_dtsg
 
