@@ -63,26 +63,31 @@ def _large_photo_url(media, image_url):
     if viewer_image.get("uri"):
         return viewer_image["uri"]
 
-    massive_image = media.get("massive_image") or {}
-    width = massive_image.get("width")
-    height = massive_image.get("height")
-    if (
-        not isinstance(image_url, str)
-        or not isinstance(width, int)
-        or not isinstance(height, int)
-        or width <= 0
-        or height <= 0
-        or f"cstp=mx{width}x{height}" not in image_url
-    ):
+    if not isinstance(image_url, str):
         return None
 
-    large_url = re.sub(
-        r"([?&]ctp=)[^&]+",
-        lambda match: f"{match.group(1)}s{width}x{height}",
-        image_url,
-        count=1,
-    )
-    return large_url if large_url != image_url else None
+    # Feed photos commonly return only viewer_image dimensions; comment photos
+    # commonly return massive_image dimensions. Facebook's cstp cap indicates
+    # the maximum rendition the matching CDN URL can provide.
+    for dimensions in (viewer_image, media.get("massive_image") or {}):
+        width = dimensions.get("width")
+        height = dimensions.get("height")
+        if (
+            isinstance(width, int)
+            and isinstance(height, int)
+            and width > 0
+            and height > 0
+            and f"cstp=mx{width}x{height}" in image_url
+        ):
+            large_url = re.sub(
+                r"([?&]ctp=)[^&]+",
+                lambda match: f"{match.group(1)}s{width}x{height}",
+                image_url,
+                count=1,
+            )
+            if large_url != image_url:
+                return large_url
+    return None
 
 
 def _parse_user_mentions(body):

@@ -20,4 +20,4 @@ A Facebook photo attached to a post, comment, or listing.
   <Prop name="url" type="str | None">Facebook URL of the photo.</Prop>
 </Props>
 
-`image_url_large` uses the `viewer_image` URL when Facebook returns one. For comment and reply photos without that URL, it is built from the returned `massive_image` dimensions when the image URL includes a matching size cap; otherwise it is `None`.
+`image_url_large` uses the `viewer_image` URL when Facebook returns one. When Facebook returns only dimensions, the library uses `viewer_image` dimensions for feed photos or `massive_image` dimensions for comment and reply photos to form a larger CDN URL, provided the URL has a matching size cap. Otherwise, it is `None`.
