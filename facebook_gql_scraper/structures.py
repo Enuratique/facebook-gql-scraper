@@ -2930,6 +2930,36 @@ class Group(FacebookModel):
             query_variables={"groupId": self.id},
         )
 
+    def get_posts_until(self, post_id: str | int) -> Iterator[Post]:
+        """Yield newer group posts until the feed reaches ``post_id`` or older.
+
+        The boundary post is not yielded. This relies on the group feed being
+        returned newest-first with numerically descending post IDs.
+
+        :param post_id: Numeric ID of the most recently persisted post.
+        :return: Iterator yielding posts newer than the boundary.
+        :rtype: Iterator[Post]
+        :raises ValueError: If the boundary or a fetched post ID is not numeric.
+        """
+        try:
+            boundary_id = int(post_id)
+        except (TypeError, ValueError) as exc:
+            raise ValueError(f"post_id must be numeric: {post_id!r}") from exc
+
+        def iter_newer_posts():
+            for post in self.get_posts():
+                try:
+                    current_id = int(post.id)
+                except (TypeError, ValueError) as exc:
+                    raise ValueError(
+                        f"Encountered a non-numeric Facebook post ID: {post.id!r}"
+                    ) from exc
+                if current_id <= boundary_id:
+                    return
+                yield post
+
+        return iter_newer_posts()
+
     def get_members(self) -> PaginatedIterator[GroupMember]:
         """
         Iterate over members of the group.

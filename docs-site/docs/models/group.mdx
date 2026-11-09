@@ -50,12 +50,15 @@ The groupname is resolved to an ID using regex matching. Prefer `from_group_id` 
 
 ## Methods
 
-All methods return a [`PaginatedIterator`](/paginated-iterator) of model objects.
+Methods return an iterator of model objects. `get_posts()` and `get_members()` return a [`PaginatedIterator`](/paginated-iterator).
 
 <Props>
   <Prop name="get_posts()" type="Post" href="/models/post" iterator>Posts in the group.</Prop>
+  <Prop name="get_posts_until(post_id)" type="Post" href="/models/post" iterator>Posts newer than the numeric checkpoint ID; stops before the checkpoint post.</Prop>
   <Prop name="get_members()" type="GroupMember" href="/models/group-member" iterator>Members of the group.</Prop>
 </Props>
+
+`get_posts_until()` assumes Facebook returns the feed newest-first with numerically descending post IDs. It is intended for incremental scans; IDs and feed order are not guaranteed by Facebook to be a permanent chronological contract.
 
 ## Example
 
@@ -66,6 +69,9 @@ context = fgs.FacebookContext(cookies_file="facebook_cookies.json")
 
 group = fgs.Group.from_group_id(context, group_id="2781022932139267")
 # Or from groupname: group = fgs.Group.from_groupname(ctx, groupname="workingmemes")
+
+for post in group.get_posts_until("1809951826955680"):
+    print(post.id, post.text)
 
 for member in group.get_members():
     print(member.join_status, member.contribution_score, member.profile.name)
