@@ -502,6 +502,7 @@ def _parse_feed_post(edge):
     return {
         "type": "post",
         "id": node.get("post_id", None),
+        "feedback_id": ((target.get("comment_list_renderer") or {}).get("feedback") or {}).get("id"),
         "creation_time": node.get("creation_time", None),
         "url": (
             node.get("comet_sections", {})
@@ -786,6 +787,7 @@ def parse_post(data):
             {
                 "type": "comment",
                 "id": comment_id,
+                "feedback_id": (c_node.get("feedback") or {}).get("id"),
                 "text": text,
                 "mentions": _parse_user_mentions(c_node.get("body")),
                 "attachments": attachments,
@@ -842,6 +844,7 @@ def parse_post(data):
     parsed_post = {
         "type": "post",
         "id": node_v2.get("post_id", None),
+        "feedback_id": ((target.get("comment_list_renderer") or {}).get("feedback") or {}).get("id"),
         "creation_time": node_v2.get("creation_time", None),
         "url": comet_story.get("wwwURL", None),
         "author": {
@@ -1003,6 +1006,7 @@ def parse_facebook_comments(data):
             {
                 "type": "comment",
                 "id": comment_id,
+                "feedback_id": (node.get("feedback") or {}).get("id"),
                 "text": text,
                 "mentions": _parse_user_mentions(node.get("body")),
                 "attachments": attachments,
@@ -1089,6 +1093,7 @@ def parse_comment_replies(data, comment_type="reply"):
         comment = {
             "type": "comment",
             "id": comment_id,
+            "feedback_id": (reply_node.get("feedback") or {}).get("id"),
             "text": text,
             "mentions": _parse_user_mentions(reply_node.get("body")),
             "attachments": attachments,

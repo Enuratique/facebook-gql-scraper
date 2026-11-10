@@ -883,9 +883,9 @@ class CommentsListComponentsPaginationQueryGraphQL(FacebookGraphQL):
         "__relay_internal__pv__IsWorkUserrelayprovider": False,
     }
 
-    def send(self, postId: str, commentsAfterCursor: str = None):
+    def send(self, postId: str, commentsAfterCursor: str = None, feedbackId: str = None):
         variables = dict(self.VARIABLES)
-        variables["id"] = base64.b64encode(f"feedback:{postId}".encode()).decode()
+        variables["id"] = feedbackId or base64.b64encode(f"feedback:{postId}".encode()).decode()
         if commentsAfterCursor is not None:
             variables["commentsAfterCount"] = -1
             variables["commentsAfterCursor"] = commentsAfterCursor
@@ -921,9 +921,10 @@ class Depth1CommentsListPaginationQueryGraphQL(FacebookGraphQL):
         commentId: str,
         expansionToken: str,
         repliesAfterCursor: str = None,
+        feedbackId: str = None,
     ):
         variables = dict(self.VARIABLES)
-        variables["id"] = base64.b64encode(
+        variables["id"] = feedbackId or base64.b64encode(
             f"feedback:{postId}_{commentId}".encode()
         ).decode()
         variables["expansionToken"] = expansionToken

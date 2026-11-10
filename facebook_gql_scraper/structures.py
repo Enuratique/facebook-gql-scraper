@@ -631,6 +631,7 @@ class Post(FacebookModel):
             },
             "share_count": parsed["parsed_data"]["post"]["share_count"],
             "comments_count": parsed["parsed_data"]["post"]["comments_count"],
+            "feedback_id": parsed["parsed_data"]["post"].get("feedback_id"),
         }
         self._data.update(post_data)
         self._full_fetched = True
@@ -756,9 +757,12 @@ class Post(FacebookModel):
         comments_graphql = CommentsListComponentsPaginationQueryGraphQL(self._context)
 
         def request_fn(cursor):
+            if not self._data.get("feedback_id") and not self._full_fetched:
+                self._obtain_metadata()
             return comments_graphql.send(
                 postId=self._field("id"),
                 commentsAfterCursor=cursor,
+                feedbackId=self._data.get("feedback_id"),
             ).text
 
         def page_wrapper(parsed):
@@ -766,6 +770,7 @@ class Post(FacebookModel):
                 {
                     "id": item["id"],
                     "text": item["text"],
+                    "feedback_id": item.get("feedback_id"),
                     "mentions": item.get("mentions", []),
                     "attachments": [
                         _attachment_to_dict(att) for att in item["attachments"]
@@ -2235,6 +2240,7 @@ class Profile(FacebookModel):
                     ],
                     "share_count": item["share_count"],
                     "comments_count": item["comments_count"],
+                    "feedback_id": item.get("feedback_id"),
                     "author": {
                         "id": item["author"]["id"],
                         "name": item["author"]["name"],
@@ -2528,6 +2534,7 @@ class Comment(FacebookModel):
                 commentId=self.id,
                 expansionToken=self._reply_expansion_token,
                 repliesAfterCursor=cursor,
+                feedbackId=self._data.get("feedback_id"),
             ).text
 
         def page_wrapper(parsed):
@@ -2535,6 +2542,7 @@ class Comment(FacebookModel):
                 {
                     "id": item["id"],
                     "text": item["text"],
+                    "feedback_id": item.get("feedback_id"),
                     "mentions": item.get("mentions", []),
                     "attachments": [
                         _attachment_to_dict(att) for att in item["attachments"]
@@ -2892,6 +2900,7 @@ class Group(FacebookModel):
                     ],
                     "share_count": item["share_count"],
                     "comments_count": item["comments_count"],
+                    "feedback_id": item.get("feedback_id"),
                     "author": {
                         "id": item["author"]["id"],
                         "name": item["author"]["name"],
