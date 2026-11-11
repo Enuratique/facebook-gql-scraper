@@ -613,6 +613,7 @@ class Post(FacebookModel):
             },
             "title": parsed["parsed_data"]["post"]["title"],
             "text": parsed["parsed_data"]["post"]["text"],
+            "mentions": parsed["parsed_data"]["post"].get("mentions", []),
             "attachments": [
                 _attachment_to_dict(a)
                 for a in parsed["parsed_data"]["post"]["attachments"]
@@ -2241,6 +2242,7 @@ class Profile(FacebookModel):
                     "share_count": item["share_count"],
                     "comments_count": item["comments_count"],
                     "feedback_id": item.get("feedback_id"),
+                    "mentions": item.get("mentions", []),
                     "author": {
                         "id": item["author"]["id"],
                         "name": item["author"]["name"],
@@ -2901,6 +2903,7 @@ class Group(FacebookModel):
                     "share_count": item["share_count"],
                     "comments_count": item["comments_count"],
                     "feedback_id": item.get("feedback_id"),
+                    "mentions": item.get("mentions", []),
                     "author": {
                         "id": item["author"]["id"],
                         "name": item["author"]["name"],

@@ -806,6 +806,7 @@ class CometSinglePostDialogContentQueryGraphQL(FacebookGraphQL):
     OPERATION_NAME = "CometSinglePostDialogContentQuery_facebookRelayOperation"
     REFERENCE_PAGE_URL = "https://www.facebook.com/Cristiano/posts/pfbid02wwWW6zEYdHpCmYbVWEwJMX8QH5ve4izADrhZpPeHxFScJkwEbdLsq9VpoboHpJFLl"
     VARIABLES = {
+        "__relay_internal__pv__GeminiUFISaveToKnowledgeHubGKrelayprovider": False,
         "feedbackSource": 2,
         "feedLocation": "POST_PERMALINK_DIALOG",
         "focusCommentID": None,
@@ -1055,6 +1056,7 @@ class GroupsCometFeedRegularStoriesPaginationQueryGraphQL(FacebookGraphQL):
     )
     REFERENCE_PAGE_URL = "https://www.facebook.com/groups/workingmemes"
     VARIABLES = {
+        "__relay_internal__pv__GeminiUFISaveToKnowledgeHubGKrelayprovider": False,
         "count": 3,
         "cursor": None,
         "feedLocation": "GROUP",
