@@ -2354,6 +2354,12 @@ def parse_facebook_payload(json_input):
 
     # Get Single Full Post
     if "node_v2" in data_block:
+        if data_block["node_v2"] is None:
+            return {
+                "operation": "CometSinglePostDialogContentQuery",
+                "parsed_data": None,
+                "post_unavailable": not bool(data.get("errors")),
+            }
         return {
             "operation": "CometSinglePostDialogContentQuery",
             "parsed_data": parse_post(data),

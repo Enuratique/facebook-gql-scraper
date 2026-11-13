@@ -2,6 +2,10 @@ class FacebookGqlScraperException(Exception):
     """Base for all errors raised by this library."""
 
 
+class FacebookResponseParseError(FacebookGqlScraperException):
+    """A Facebook response could not be parsed or was not recognized."""
+
+
 # Session / auth 
 class SessionExpiredError(FacebookGqlScraperException):
     """Facebook invalidated the session (cookie expired or was revoked)."""
@@ -23,6 +27,10 @@ class ProfileNotFoundError(FacebookNotFoundError):
 
 class PostNotFoundError(FacebookNotFoundError):
     """The post was not found on Facebook."""
+
+
+class PostUnavailableError(PostNotFoundError):
+    """Facebook returned a null post node without explaining why."""
 
 
 class GroupNotFoundError(FacebookNotFoundError):

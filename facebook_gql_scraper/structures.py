@@ -34,6 +34,8 @@ from .exceptions import (
     MissingParentError,
     ProfileNotFoundError,
     PostNotFoundError,
+    FacebookResponseParseError,
+    PostUnavailableError,
     GroupNotFoundError,
     MarketplaceListingNotFoundError,
 )
@@ -598,7 +600,15 @@ class Post(FacebookModel):
         response_post_graphql = post_graphql.send(postId=self.id)
         parsed = self._context.parse_graphql_response(response_post_graphql.text)
 
+        if not isinstance(parsed, dict) or "parsed_data" not in parsed:
+            raise FacebookResponseParseError(
+                f"Could not parse or recognize the single-post response for post {self.id}; "
+                "the post's availability is unknown"
+            )
+
         if parsed["parsed_data"] is None:
+            if parsed.get("post_unavailable"):
+                raise PostUnavailableError(f"Post unavailable: {self.id}")
             raise PostNotFoundError(f"Post not found: {self.id}")
 
         post_data = {
